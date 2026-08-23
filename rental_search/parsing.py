@@ -93,3 +93,38 @@ def guess_registration_possible(text: str) -> Optional[bool]:
     if "inschrijving mogelijk" in lowered or "registration possible" in lowered:
         return True
     return None
+
+
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}")
+
+# Dutch phone numbers: mobile (06 xx xx xx xx / +31 6 ...) or landline
+# (0<area code><number> / +31 <area code><number>), written with any mix
+# of spaces or dashes. The leading "0" trunk prefix (domestic) or "+31"
+# (international, trunk zero dropped) is matched once here, not repeated
+# inside the area-code/number part.
+PHONE_RE = re.compile(
+    r"(?:\+31[\s\-]?|0)(?:6[\s\-]?\d{2}[\s\-]?\d{2}[\s\-]?\d{2}[\s\-]?\d{2}"
+    r"|\d{1,3}[\s\-]?\d{6,7})"
+)
+
+_AGENCY_RE = re.compile(
+    r"(?:aangeboden door|verhuurd door|offered by|listed by|makelaar|real estate agent|agent)"
+    r"\s*[:\-]?\s*([A-Z][\w&.'\- ]{1,40}?)(?=[.,\n]|\s{2}|$)",
+    re.IGNORECASE,
+)
+
+
+def extract_contact_info(text: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    """Best-effort extraction of a landlord/agency name, phone number, and
+    email address from a listing's detail page text. Returns
+    (name, phone, email); any of the three may be None if not found."""
+    email_match = EMAIL_RE.search(text)
+    email = email_match.group(0) if email_match else None
+
+    phone_match = PHONE_RE.search(text)
+    phone = phone_match.group(0).strip() if phone_match else None
+
+    agency_match = _AGENCY_RE.search(text)
+    name = agency_match.group(1).strip() if agency_match else None
+
+    return name, phone, email

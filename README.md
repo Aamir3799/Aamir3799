@@ -19,11 +19,20 @@ Your search criteria (see `config.example.yaml`):
 - **Alerts you, it doesn't auto-apply.** You asked for alerts fast enough to
   apply yourself, not unattended auto-submission — this only sends an email
   the moment a new match is found, with a direct link.
+- **It tries to include a phone number, email, or agency name directly in
+  the alert.** For each match, it fetches the listing's own page (not just
+  the search-results snippet) and looks for contact details, so you often
+  don't have to click through at all. This is best-effort text scanning —
+  if a page shows contact info in a way the scanner doesn't recognize, or
+  hides it behind a "react"/"contact" button (see below), the alert says so
+  and you'll need to open the link.
 - **It can't bypass a site's own contact/registration wall.** Some sites
   (Kamernet especially) require *you* to have a free or paid account on
-  *their* platform before you can message a landlord. That's the platform's
-  own rule and isn't something this tool can or should work around — it just
-  gets you the link before most other people see it.
+  *their* platform before you can message a landlord — no phone/email is
+  shown on the page at all until you do. That's the platform's own rule and
+  isn't something this tool can or should work around — it just gets you
+  the link before most other people see it. Pararius and HuurWoningen
+  listings are more often placed by agents who list a phone/email openly.
 - **Facebook groups/Marketplace are intentionally not scraped.** They require
   a logged-in session, and automating that both breaks Meta's Terms of
   Service and is fragile against anti-bot detection. If you find a *public*

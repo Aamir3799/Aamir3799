@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -9,6 +10,21 @@ from .config import EmailConfig
 from .models import Listing
 
 logger = logging.getLogger(__name__)
+
+
+def _format_contact_html(listing: Listing) -> str:
+    if not (listing.contact_name or listing.contact_phone or listing.contact_email):
+        return "<br>Contact: not found on the listing page — open the link above."
+
+    parts = []
+    if listing.contact_name:
+        parts.append(html.escape(listing.contact_name))
+    if listing.contact_phone:
+        digits = "".join(c for c in listing.contact_phone if c.isdigit() or c == "+")
+        parts.append(f"<a href='tel:{digits}'>{html.escape(listing.contact_phone)}</a>")
+    if listing.contact_email:
+        parts.append(f"<a href='mailto:{listing.contact_email}'>{html.escape(listing.contact_email)}</a>")
+    return f"<br>Contact: {' &middot; '.join(parts)}"
 
 
 def _format_listing_html(listing: Listing) -> str:
@@ -23,6 +39,7 @@ def _format_listing_html(listing: Listing) -> str:
     return (
         f"<li><b><a href='{listing.url}'>{listing.title}</a></b><br>"
         f"{price} &middot; {furnished} &middot; available: {available} &middot; {registration} &middot; source: {listing.source}"
+        f"{_format_contact_html(listing)}"
         f"</li>"
     )
 
