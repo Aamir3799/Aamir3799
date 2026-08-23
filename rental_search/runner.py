@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import logging
 
+from bs4 import BeautifulSoup
+
 from .config import Config
+from .fetcher import fetch_html
 from .filters import matches
 from .models import Listing
 from .notifier import send_digest_email
+from .parsing import extract_contact_info
 from .scrapers.base import Scraper
 from .scrapers.generic import build_generic_scrapers
 from .scrapers.huurwoningen import HuurWoningenScraper
@@ -32,6 +36,24 @@ def build_scrapers(config: Config) -> list[Scraper]:
     return scrapers
 
 
+def enrich_with_contact_info(listing: Listing, config: Config) -> None:
+    """Fetches the listing's own detail page (search-result snippets rarely
+    include contact details) and fills in a landlord/agency name, phone, or
+    email if one can be found. Best-effort: failures are logged and leave
+    the listing's contact fields as None rather than blocking the alert."""
+    try:
+        html = fetch_html(listing.url, contact_email=config.contact_email)
+        if not html:
+            return
+        text = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
+        name, phone, email = extract_contact_info(text)
+        listing.contact_name = name
+        listing.contact_phone = phone
+        listing.contact_email = email
+    except Exception:
+        logger.exception("Failed to fetch contact info for %s", listing.url)
+
+
 def run_once(config: Config, store: SeenListingsStore) -> list[Listing]:
     """Scrapes all enabled sources once, filters for new matches, records
     them as seen, and returns the list of new matching listings."""
@@ -53,6 +75,7 @@ def run_once(config: Config, store: SeenListingsStore) -> list[Listing]:
 
             ok, reasons = matches(listing, config.search)
             if ok:
+                enrich_with_contact_info(listing, config)
                 new_matches.append(listing)
             else:
                 logger.debug("Skipped %s: %s", listing.url, "; ".join(reasons))

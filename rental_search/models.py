@@ -22,6 +22,9 @@ class Listing:
     shared: Optional[bool] = None
     description: str = ""
     image_url: Optional[str] = None
+    contact_name: Optional[str] = None  # landlord or agency name, if found on the listing page
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
 
     @property
     def dedup_key(self) -> str:
