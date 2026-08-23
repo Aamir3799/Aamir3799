@@ -1,0 +1,53 @@
+# Copy this file to config.yaml and fill in your details.
+# Do NOT commit config.yaml if it contains your real SMTP password —
+# use environment variables (${VAR_NAME}) instead, as shown below.
+
+contact_email: "aamirhussain3799@gmail.com"  # used in the bot's User-Agent, so sites can identify/contact us if needed
+
+search:
+  city: "Eindhoven"
+  max_price_eur: 900
+  furnished_required: true
+  property_types: ["room", "studio", "apartment", "house"]
+  move_in_from: "2026-09-15"       # you can move in from this date
+  move_in_flexibility_days: 14     # also accept listings available up to this many days later
+
+notification:
+  email:
+    enabled: true
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    smtp_user: "${SMTP_USER}"          # your Gmail address
+    smtp_password: "${SMTP_PASSWORD}"  # a Gmail "App Password" — see README
+    to_address: "aamirhussain3799@gmail.com"
+
+sources:
+  kamernet:
+    enabled: true
+    use_browser: false   # set true if `selftest` finds 0 listings (site may need JS rendering)
+  pararius:
+    enabled: true
+    use_browser: false
+  huurwoningen:
+    enabled: true
+    use_browser: false
+
+  # Any other PUBLIC (no login required) listing page can be added here.
+  # Facebook groups/Marketplace are intentionally NOT supported: they
+  # require a logged-in session and scraping them breaks Meta's Terms of
+  # Service — see README for why and what to do instead.
+  generic:
+    - name: "example-other-site"
+      enabled: false
+      search_url: "https://example.org/rooms?city=eindhoven"
+      listing_selector: ".listing-card"     # CSS selector matching each listing "card"
+      title_selector: ".title"
+      price_selector: ".price"
+      url_selector: "a"                     # element whose href points to the listing
+      use_browser: false
+
+polling:
+  interval_minutes: 10
+
+storage:
+  db_path: "data/seen_listings.sqlite3"
